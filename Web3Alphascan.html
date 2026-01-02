@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AlphaScan | Web3 Token Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root {
+  --bg:#0b0e14;
+  --card:#121826;
+  --accent:#00f5a0;
+  --danger:#ff4d4d;
+  --warning:#ffb84d;
+  --text:#e6e6e6;
+  --muted:#9aa4b2;
+  --success:#3bd671;
+}
+
+*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0b0e14,#06080f);
+  color:var(--text);
+  padding:20px;
+}
+
+.container{max-width:760px;margin:auto}
+
+.header{text-align:center;margin-bottom:30px}
+.header h1{font-size:30px;margin-bottom:6px}
+.header p{color:var(--muted);font-size:14px}
+
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:22px;
+  margin-bottom:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,.45);
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:none;
+  background:#0f1422;
+  color:white;
+  font-size:15px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  background:var(--accent);
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button.secondary{background:#1c2233;color:var(--text)}
+button:hover{transform:translateY(-1px);opacity:.95}
+
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  margin:10px 0;
+  font-size:14px;
+}
+
+.muted{color:var(--muted)}
+
+.locked{
+  border:1px dashed var(--accent);
+  padding:18px;
+  border-radius:14px;
+  margin-top:20px;
+}
+
+.badge{
+  font-size:12px;
+  color:var(--accent);
+  font-weight:700;
+}
+
+.warning{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:20px;
+  line-height:1.6;
+}
+
+.risk-bar{
+  width:100%;
+  height:14px;
+  background:#1a1f2f;
+  border-radius:10px;
+  overflow:hidden;
+  margin:12px 0;
+}
+
+.risk-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#00f5a0,#ffb84d,#ff4d4d);
+  transition:width 1s ease;
+}
+
+/* Loading */
+.loader{
+  width:50px;
+  height:50px;
+  border:4px solid #1c2233;
+  border-top:4px solid var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:30px auto;
+}
+
+@keyframes spin{100%{transform:rotate(360deg)}}
+
+.tg{
+  text-align:center;
+  padding:16px;
+  border-radius:14px;
+  background:#0f1422;
+  margin-top:30px;
+}
+
+.tg a{
+  color:var(--accent);
+  font-weight:700;
+  text-decoration:none;
+}
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:30px;
+}
+
+/* Pro analysis additions */
+.section-title{
+  font-size:14px;
+  font-weight:700;
+  margin-top:18px;
+  margin-bottom:6px;
+}
+
+.tag-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:8px 0;
+}
+
+.tag{
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#1a1f2f;
+  color:var(--muted);
+}
+
+.tag.green{color:var(--success);border:1px solid var(--success);}
+.tag.yellow{color:var(--warning);border:1px solid var(--warning);}
+.tag.red{color:var(--danger);border:1px solid var(--danger);}
+
+.verdict{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  margin-top:8px;
+}
+.verdict.low{background:rgba(59,214,113,.1);color:var(--success);border:1px solid var(--success);}
+.verdict.medium{background:rgba(255,184,77,.1);color:var(--warning);border:1px solid var(--warning);}
+.verdict.high{background:rgba(255,77,77,.08);color:var(--danger);border:1px solid var(--danger);}
+
+/* Responsive tweak */
+@media(max-width:600px){
+  body{padding:16px;}
+  .header h1{font-size:24px;}
+  .card{padding:18px;}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>AlphaScan</h1>
+  <p>Before you ape — understand what you’re walking into. Clarity and intelligence for the Web3 trader.
+
+</p>
+</div>
+
+<!-- INPUT -->
+<div class="card">
+  <input id="caInput" placeholder="Paste Token Contract Address" />
+  <button onclick="scanToken()">Scan Token</button>
+</div>
+
+<!-- BASIC RESULT -->
+<div id="basicResult" class="card" style="display:none;">
+  <div class="result-row"><span class="muted">Token</span><span id="tokenName">—</span></div>
+  <div class="result-row"><span class="muted">Market Cap</span><span id="tokenMC">—</span></div>
+  <div class="result-row"><span class="muted">24h Volume</span><span id="tokenVolume">—</span></div>
+  <div class="result-row"><span class="muted">Liquidity</span><span id="tokenLiquidity">—</span></div>
+
+  <div class="locked">
+    <h3>🔐 Locked Intelligence</h3>
+    <p class="muted">
+      Surface data is cheap.<br>
+      The edge is knowing when you're exit liquidity — or early.
+    </p>
+
+    <button onclick="startPayment()">Check to know more about this coin</button>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div id="payment" class="card" style="display:none;">
+  <h3>Unlock Pro Analysis — $3.99</h3>
+  <p class="muted">Pay once. Get a full risk map — not just a green/red label.</p>
+
+  <p><b>USDT (ERC20):</b><br>0xfDDed08576946AC1509B905d3bc160F951130Bb1</p>
+  <p><b>BNB (BSC):</b><br>0xfDDed08576946AC1509B905d3bc160F951130Bb1</p>
+  <p><b>SOL (SOL):</b><br>9CaAU6jU9598G1zuegBDALQSXiY9PAYYep6XbtdeXLPL</p>
+  <p><b>BTC:</b><br>bc1qskmxl3fq4txq26mm6kd8puf732afgzl7fluxfx</p>
+
+  <button onclick="confirmPayment()">I’ve Paid — Unlock</button>
+</div>
+
+<!-- LOADING -->
+<div id="loading" class="card" style="display:none;text-align:center;">
+  <div class="loader"></div>
+  <p class="muted">Verifying transaction & preparing intelligence…</p>
+</div>
+
+<!-- FULL ANALYSIS -->
+<div id="fullAnalysis" class="card" style="display:none;">
+  <span class="badge">UNLOCKED ANALYSIS</span>
+  <div id="verdictBadge" class="verdict" style="display:none;"></div>
+
+  <p id="headlineSummary" style="margin-top:10px;"></p>
+
+  <h3>⚖️ Risk Profile</h3>
+  <div class="risk-bar"><div class="risk-fill" id="riskFill"></div></div>
+  <p id="riskText" class="muted"></p>
+
+  <div class="section-title">Liquidity & Exit Risk</div>
+  <div id="liquidityInsight" class="muted"></div>
+  <div class="tag-row" id="liquidityTags"></div>
+
+  <div class="section-title">Holder Behavior & Distribution</div>
+  <div id="holderInsight" class="muted"></div>
+  <div class="tag-row" id="holderTags"></div>
+
+  <div class="section-title">Contract & Control Surface</div>
+  <div id="contractInsight" class="muted"></div>
+  <div class="tag-row" id="contractTags"></div>
+
+  <div class="section-title">Trading Flow & Psychology</div>
+  <div id="flowInsight" class="muted"></div>
+  <div class="tag-row" id="flowTags"></div>
+
+  <div class="section-title">Rug Likelihood Snapshot</div>
+  <div id="rugInsight" class="muted"></div>
+
+  <div class="warning">
+    ⚠️ This is analytical insight — not financial advice.<br>
+    No guarantees. No promises. Always DYOR.
+  </div>
+</div>
+
+<div class="tg">
+  Powered by <b>MustaChain</b><br><br>
+  <a href="https://t.me/MustachainMAC" target="_blank">
+    Join Mustachain on Telegram→
+  </a>
+</div>
+
+<div class="footer">
+  AlphaScan © 2026 — Web3 Intelligence Engine
+</div>
+
+</div>
+
+<script>
+let lastPairData = null;
+
+async function scanToken(){
+  const ca=document.getElementById("caInput").value.trim();
+  if(!ca)return alert("Enter contract address");
+
+  try{
+    const res=await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ca}`);
+    const data=await res.json();
+    if(!data.pairs||!data.pairs.length)return alert("Token not found");
+
+    const p=data.pairs.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
+    lastPairData=p;
+
+    tokenName.innerText=`${p.baseToken.name} (${p.baseToken.symbol})`;
+    tokenMC.innerText="$"+(p.fdv||0).toLocaleString();
+    tokenVolume.innerText="$"+(p.volume?.h24||0).toLocaleString();
+    tokenLiquidity.innerText="$"+(p.liquidity?.usd||0).toLocaleString();
+    basicResult.style.display="block";
+    fullAnalysis.style.display="none";
+    payment.style.display="none";
+    loading.style.display="none";
+  }catch(e){
+    console.error(e);
+    alert("Error fetching token data. Try again.");
+  }
+}
+
+function startPayment(){
+  payment.style.display="block";
+  payment.scrollIntoView({behavior:"smooth"});
+}
+
+function confirmPayment(){
+  if(!lastPairData){
+    alert("Scan a token first.");
+    return;
+  }
+
+  payment.style.display="none";
+  loading.style.display="block";
+
+  setTimeout(()=>{
+    loading.style.display="none";
+    fullAnalysis.style.display="block";
+    analyzeToken(lastPairData);
+    fullAnalysis.scrollIntoView({behavior:"smooth"});
+  },3000);
+}
+
+// Core analysis logic – rug / risk heuristics
+function analyzeToken(p){
+  const fdv=p.fdv||0;
+  const liq=p.liquidity?.usd||0;
+  const vol24=p.volume?.h24||0;
+  const buys24=p.txns?.h24?.buys||0;
+  const sells24=p.txns?.h24?.sells||0;
+  const priceChange24=p.priceChange?.h24 ?? 0;
+
+  // Liquidity score
+  let liqScore;
+  const liqToMCap=fdv>0?liq/fdv:0;
+  if(liqToMCap>=0.35) liqScore=85;
+  else if(liqToMCap>=0.2) liqScore=70;
+  else if(liqToMCap>=0.1) liqScore=55;
+  else if(liqToMCap>=0.05) liqScore=40;
+  else liqScore=25;
+
+  const volToLiq=liq>0?vol24/liq:0;
+  if(volToLiq>5) liqScore-=15;
+  else if(volToLiq>2) liqScore-=8;
+
+  // Flow score
+  let flowScore=50;
+  const totalTx=buys24+sells24;
+  const buySellRatio=sells24>0?buys24/sells24:buys24>0?3:1;
+  if(totalTx===0){
+    flowScore=40;
+  }else{
+    if(buySellRatio>3) flowScore+=10;
+    else if(buySellRatio<0.5) flowScore-=15;
+  }
+  if(Math.abs(priceChange24)>200) flowScore-=10;
+
+  // Contract / control (heuristic)
+  let contractScore=45;
+  let contractNotes=[];
+  contractNotes.push("Ownership & mint authority not verified by AlphaScan.");
+  contractNotes.push("Trading controls (blacklist / maxTx / maxWallet) unknown.");
+  contractNotes.push("Liquidity lock status not confirmed; treat as unlocked until proven otherwise.");
+  if(fdv>500000 && liqToMCap<0.05){
+    contractScore-=10;
+    contractNotes.push("High FDV with thin liquidity suggests outsized control by few wallets.");
+  }
+
+  // Holders (heuristic)
+  let holderScore=50;
+  let holderNotes=[];
+  if(fdv<30000 && vol24>fdv*0.8){
+    holderScore=40;
+    holderNotes.push("Microcap with volume close to full FDV — often a few wallets doing most of the flow.");
+  }else if(fdv>1000000 && vol24<fdv*0.02){
+    holderScore=45;
+    holderNotes.push("High FDV but weak rotation — early wallets may be heavily in profit and waiting to exit.");
+  }else{
+    holderNotes.push("Holder distribution not directly visible — pattern doesn’t scream single-wallet farm, but caution is still required.");
+  }
+
+  const liqRisk=100-liqScore;
+  const flowRisk=100-flowScore;
+  const contractRisk=100-contractScore;
+  const holderRisk=100-holderScore;
+
+  let totalRisk=
+    liqRisk*0.32+
+    flowRisk*0.22+
+    contractRisk*0.26+
+    holderRisk*0.20;
+
+  totalRisk=Math.max(0,Math.min(100,Math.round(totalRisk)));
+
+  let rugLabel="",rugNarrative="",verdictClass="";
+  if(totalRisk<=30){
+    rugLabel="Low rug probability (for now)";
+    rugNarrative="On-chain structure looks relatively healthy: liquidity depth, flow, and implied holder behavior do not currently match classic rug pull setups. That does not remove risk — it just means the deck isn’t obviously stacked against you right now.";
+    verdictClass="low";
+  }else if(totalRisk<=65){
+    rugLabel="Elevated rug probability";
+    rugNarrative="Multiple signals point to a non-zero chance that exit liquidity could be manufactured: liquidity and control surface are not outright malicious, but the setup allows a coordinated rug if incentives flip. Only deploy capital you’re comfortable losing in a single event.";
+    verdictClass="medium";
+  }else{
+    rugLabel="High rug probability / capital at risk";
+    rugNarrative="The structure rhymes with classic rug environments: shallow or fragile liquidity, unclear control over the contract, and speculative flow that can vanish quickly. Treat any size as lotto-sized exposure. Avoid if you need principal protection.";
+    verdictClass="high";
+  }
+
+  const headline=buildHeadlineSummary({totalRisk,liqToMCap,volToLiq,priceChange24,buySellRatio});
+
+  showRisk(totalRisk);
+
+  const verdictBadge=document.getElementById("verdictBadge");
+  verdictBadge.style.display="inline-flex";
+  verdictBadge.className="verdict "+verdictClass;
+  verdictBadge.textContent=rugLabel;
+
+  document.getElementById("headlineSummary").innerText=headline;
+
+  const liqText=buildLiquidityInsight({liq,fdv,liqToMCap,volToLiq});
+  document.getElementById("liquidityInsight").innerText=liqText;
+  renderTags("liquidityTags",buildLiquidityTags({liqToMCap,volToLiq}));
+
+  document.getElementById("holderInsight").innerText=holderNotes.join(" ");
+  renderTags("holderTags",buildHolderTags({fdv,vol24}));
+
+  document.getElementById("contractInsight").innerText=contractNotes.join(" ");
+  renderTags("contractTags",buildContractTags({contractScore}));
+
+  document.getElementById("flowInsight").innerText=
+    buildFlowInsight({buys24,sells24,totalTx,priceChange24,buySellRatio});
+  renderTags("flowTags",buildFlowTags({buySellRatio,priceChange24}));
+
+  document.getElementById("rugInsight").innerText=rugNarrative;
+}
+
+function showRisk(level){
+  riskFill.style.width=level+"%";
+  const txt=
+    level<=30?"Lower structural rug risk detected — still crypto, not a savings account."
+    :level<=65?"Moderate-to-elevated risk: upside exists, but the environment can flip from euphoria to exit fast."
+    :"High-risk environment: structure allows fast extraction of liquidity. Treat any position as a speculative bet.";
+  riskText.innerText=txt;
+}
+
+// Helpers
+function buildHeadlineSummary({totalRisk,liqToMCap,volToLiq,priceChange24,buySellRatio}){
+  let riskWord=
+    totalRisk<=30?"defensive"
+    :totalRisk<=65?"opportunistic but fragile"
+    :"thin-ice, casino-tier";
+
+  let flowWord=
+    buySellRatio>3?"heavy FOMO-driven inflows"
+    :buySellRatio<0.5?"sustained sell-pressure and exit rotation"
+    :"two-sided flow without a clear winner yet";
+
+  let volWord=
+    Math.abs(priceChange24)>200?"insane intraday swings"
+    :Math.abs(priceChange24)>80?"aggressive volatility"
+    :"contained volatility (for crypto standards)";
+
+  return `This pool currently prices as a ${riskWord} environment with ${flowWord} and ${volWord}. Liquidity coverage sits at ~${(liqToMCap*100).toFixed(1)}% of FDV with a volume-to-liquidity ratio of ~${volToLiq.toFixed(1)}×, making entries and exits highly path-dependent.`;
+}
+
+function buildLiquidityInsight({liq,fdv,liqToMCap,volToLiq}){
+  let lines=[];
+  lines.push(`Reported liquidity sits around $${formatUsd(liq)} versus a fully diluted valuation near $${formatUsd(fdv)}.`);
+
+  if(liqToMCap>=0.35){
+    lines.push("Coverage is strong: a meaningful chunk of FDV is backed by on-chain liquidity, reducing instant death-by-sell pressure risk.");
+  }else if(liqToMCap>=0.15){
+    lines.push("Liquidity is serviceable for most degen-sized entries, but not deep enough to absorb whales exiting in one shot.");
+  }else{
+    lines.push("Liquidity is thin relative to valuation. A coordinated sell event or team exit can nuke the chart in a single rotation.");
+  }
+
+  if(volToLiq>5){
+    lines.push("24h volume is multiple times the pool size — this is a hot potato: great for scalpers, brutal for late entries if flow stops.");
+  }else if(volToLiq>2){
+    lines.push("Volume is elevated relative to liquidity; slippage will spike during volatility clusters.");
+  }else{
+    lines.push("Volume vs liquidity is within a more organic range; rotations are less likely to insta-wipe the book on normal days.");
+  }
+
+  return lines.join(" ");
+}
+
+function buildLiquidityTags({liqToMCap,volToLiq}){
+  let tags=[];
+  if(liqToMCap>=0.35) tags.push({label:"Deep-ish liquidity",tone:"green"});
+  else if(liqToMCap>=0.15) tags.push({label:"Moderate liquidity",tone:"yellow"});
+  else tags.push({label:"Thin liquidity",tone:"red"});
+
+  if(volToLiq>5) tags.push({label:"Overheated flow",tone:"red"});
+  else if(volToLiq>2) tags.push({label:"Hot rotation",tone:"yellow"});
+  else tags.push({label:"Organic flow",tone:"green"});
+
+  return tags;
+}
+
+function buildHolderTags({fdv,vol24}){
+  let tags=[];
+  if(fdv<30000) tags.push({label:"Ultra-microcap",tone:"red"});
+  else if(fdv<150000) tags.push({label:"Microcap terrain",tone:"yellow"});
+  else tags.push({label:"Mid-cap+ zone",tone:"green"});
+
+  if(vol24>fdv*0.8) tags.push({label:"Likely concentrated flow",tone:"red"});
+  else if(vol24>fdv*0.3) tags.push({label:"Speculative rotation",tone:"yellow"});
+  else tags.push({label:"Calmer holder behavior",tone:"green"});
+
+  return tags;
+}
+
+function buildContractTags({contractScore}){
+  let tags=[];
+  if(contractScore>=70){
+    tags.push({label:"Contract risk muted",tone:"green"});
+  }else if(contractScore>=50){
+    tags.push({label:"Contract unknown",tone:"yellow"});
+  }else{
+    tags.push({label:"Control surface risky",tone:"red"});
+  }
+  tags.push({label:"Lock status unverified",tone:"yellow"});
+  return tags;
+}
+
+function buildFlowInsight({buys24,sells24,totalTx,priceChange24,buySellRatio}){
+  if(totalTx===0){
+    return "No meaningful 24h flow detected. Either the token is in hibernation or liquidity is a mirage. Both scenarios mean you are the liquidity if you choose to enter.";
+  }
+
+  let lines=[];
+  lines.push(`Last 24h recorded ${buys24} buys vs ${sells24} sells.`);
+
+  if(buySellRatio>3){
+    lines.push("Flow is aggressively buy-skewed — FOMO meta. This often precedes either a parabolic leg or a sharp mean reversion.");
+  }else if(buySellRatio<0.5){
+    lines.push("Sell-side flow dominates; a large portion of holders are rotating out or distributing into strength.");
+  }else{
+    lines.push("Order flow is relatively balanced; volatility will mostly come from fresh money rather than pure distribution.");
+  }
+
+  if(Math.abs(priceChange24)>200){
+    lines.push(`24h price move sits around ${priceChange24.toFixed(1)}% — this is casino-grade volatility. Stops and sizing matter more than narratives.`);
+  }else if(Math.abs(priceChange24)>80){
+    lines.push(`Price has moved ~${priceChange24.toFixed(1)}% in 24h, which is aggressive even by degen standards.`);
+  }else{
+    lines.push(`24h price change of ~${priceChange24.toFixed(1)}% indicates a more controlled regime for now.`);
+  }
+
+  return lines.join(" ");
+}
+
+function buildFlowTags({buySellRatio,priceChange24}){
+  let tags=[];
+  if(buySellRatio>3) tags.push({label:"FOMO meta",tone:"yellow"});
+  else if(buySellRatio<0.5) tags.push({label:"Exit rotation",tone:"red"});
+  else tags.push({label:"Two-sided flow",tone:"green"});
+
+  if(Math.abs(priceChange24)>200) tags.push({label:"Casino volatility",tone:"red"});
+  else if(Math.abs(priceChange24)>80) tags.push({label:"High volatility",tone:"yellow"});
+  else tags.push({label:"Contained volatility",tone:"green"});
+
+  return tags;
+}
+
+function renderTags(id,tags){
+  const el=document.getElementById(id);
+  el.innerHTML="";
+  tags.forEach(t=>{
+    const s=document.createElement("span");
+    s.className="tag "+t.tone;
+    s.textContent=t.label;
+    el.appendChild(s);
+  });
+}
+
+function formatUsd(v){
+  if(!v)return"0";
+  if(v>=1_000_000_000)return(v/1_000_000_000).toFixed(2)+"B";
+  if(v>=1_000_000)return(v/1_000_000).toFixed(2)+"M";
+  if(v>=1_000)return(v/1_000).toFixed(2)+"K";
+  return v.toFixed(0);
+}
+</script>
+
+</body>
+</html>
