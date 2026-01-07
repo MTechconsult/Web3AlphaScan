@@ -465,7 +465,7 @@ function showRisk(level){
   riskFill.style.width=level+"%";
   const txt=
     level<=30?"Lower structural rug risk detected — still crypto, not a savings account."
-    :level<=65?"Moderate-to-elevated risk: upside exists, but the environment can flip from euphoria to exit fast."
+    :level<=65?"Medium-to-high risk: there’s profit potential, but sentiment can switch from hype to dumping very fast."
     :"High-risk environment: structure allows fast extraction of liquidity. Treat any position as a speculative bet.";
   riskText.innerText=txt;
 }
@@ -495,7 +495,7 @@ function buildLiquidityInsight({liq,fdv,liqToMCap,volToLiq}){
   lines.push(`Reported liquidity sits around $${formatUsd(liq)} versus a fully diluted valuation near $${formatUsd(fdv)}.`);
 
   if(liqToMCap>=0.35){
-    lines.push("Coverage is strong: a meaningful chunk of FDV is backed by on-chain liquidity, reducing instant death-by-sell pressure risk.");
+    lines.push("Coverage is strong: a meaningful chunk of FDV is backed by on-chain liquidity, This reduces the risk of sharp crashes from large sell-offs.");
   }else if(liqToMCap>=0.15){
     lines.push("Liquidity is serviceable for most degen-sized entries, but not deep enough to absorb whales exiting in one shot.");
   }else{
