@@ -495,7 +495,7 @@ function buildLiquidityInsight({liq,fdv,liqToMCap,volToLiq}){
   lines.push(`Reported liquidity sits around $${formatUsd(liq)} versus a fully diluted valuation near $${formatUsd(fdv)}.`);
 
   if(liqToMCap>=0.35){
-    lines.push("Coverage is strong: a meaningful chunk of FDV is backed by on-chain liquidity, This reduces the risk of sharp crashes from large sell-offs.");
+    lines.push("Coverage is strong: a meaningful chunk of FDV is backed by on-chain liquidity, this reduces the risk of sharp crashes from large sell-offs.");
   }else if(liqToMCap>=0.15){
     lines.push("Liquidity is serviceable for most degen-sized entries, but not deep enough to absorb whales exiting in one shot.");
   }else{
